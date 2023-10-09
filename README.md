@@ -92,9 +92,164 @@ Sourse type: `Anywhere`
 
 
 ***
-Now Lets Setup Every Server Step by Step  Follow The Video Below
+Now Let's setup servers
 ***  
+Update all servers:
+```sh 
+sudo apt update
+```   
+Install Node.js on both the backend and the frontend. Follow : https://github.com/nodesource/distributions   
+Install Nginx in all servers:  
+```sh 
+sudo apt install nginx
+```
+## Configure nginx.conf to each of the servers
+In Every server, you can use this command to edit
+```
+sudo vim /etc/nginx/nginx.conf
+```
+After editing, check nginx & reload    
+```
+sudo nginx -t
+sudo nginx -s reload
+```
+
+### Backend
+edit nginx.conf file and  delete all and add these
+```conf
+events {}
+http {
+
+    upstream backend {
+            server localhost:3000;
+        }
+
+    server {
+        listen 80;
+        location / {
+            proxy_pass http://backend;
+        }
+    }
+}
+```
+
+### Front End
+edit nginx.conf file and  delete all and add these
+```conf
+events {}
+http {
+
+    upstream backend {
+            server 10.10.1.28:80;
+            #      ^^^^^^^^^^^^^ Your Backend Server IP
+    }
+
+    upstream frontend {
+            server localhost:81;
+    }
+
+    server {
+        listen 3000;
+        location / {
+            proxy_pass http://backend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 86400;
+        }
+    }
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://frontend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 86400;
+        }
+    }
+}
+
+```
 
 
+### Load Balancer
+edit nginx.conf file, delete all and add these
+```conf
+events {}
+http {
+
+    upstream backend {
+            server 10.10.1.28:80;
+            #      ^^^^^^^^^^^^^ Your Backend Server IP
+    }
+
+    upstream frontend {
+            server 10.10.1.15:80;
+            #      ^^^^^^^^^^^^^ Your Frontend Server IP
+    }
+
+    server {
+        listen 80;
+        location / {
+            proxy_pass http://frontend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 86400;
+        }
+        location /api {
+            proxy_pass http://backend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 86400;
+        }
+    }
+
+    server {
+        listen 3000;
+        location / {
+            proxy_pass http://backend/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 86400;
+        }
+    }
+}
+```
+## Backend App setup
+clone this repo and goto `backend` folder and run
+```
+npm i
+```
+Then run 
+```
+sudo npm install pm2 -g
+```
+Then Start the backend server
+```
+pm2 start "node app.js" --name backend
+```
+
+
+## Front-End App setup
+Install yarn
+```
+sudo npm install --global yarn
+```
+Then Init Project
+```
+yarn
+```
+Now change `frontend/src/App.tsx`'s const host = "Your Backend IP"; `remove localhost`
+
+Now run this command
+```
+yarn dev --host --port 81
+```
 
 
