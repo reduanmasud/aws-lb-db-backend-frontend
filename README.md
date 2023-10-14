@@ -1,4 +1,5 @@
 # aws-lb-db-backend-frontend
+![Untitled-2023-08-02-1735](https://github.com/reduanmasud/aws-lb-db-backend-frontend/assets/59122533/d335bfd7-296d-492d-ab56-58b03dc70900)
 
 ## First, goto AWS and Create A VPC with below configurations
 **Resources to create:** `VPC and more`  
